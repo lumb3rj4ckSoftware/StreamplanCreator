@@ -2,279 +2,216 @@
 <html lang="de">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Streamplan · SteinHQ</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0b0f14;           /* FitStory-ähnlicher Dark-Background */
-    --panel:#121922;        /* Karten-Hintergrund */
-    --muted:#9fb0c5aa;
-    --text:#eef3f8;
-    --accent:#46e2a1;
-    --radius:18px;
-    --shadow:0 12px 30px rgba(0,0,0,.35);
+  :root{--bg:#0b0f14;--panel:#121922;--muted:#9fb0c5aa;--text:#eef3f8;--radius:18px;--shadow:0 12px 30px rgba(0,0,0,.35)}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,#0b0f14,#0f1722);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px}
+  .wrap{width:min(1200px,100%);margin:0 auto;display:grid;gap:18px;grid-template-columns:1.05fr .95fr}
+  @media (max-width:1000px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid rgba(255,255,255,.06)}
+  h1{margin:0 0 4px;font-weight:800}
+  .sub{color:var(--muted);font-size:.95rem;margin-bottom:12px}
+  .grid{display:grid;gap:12px}
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  .hr{height:1px;background:rgba(255,255,255,.06);margin:10px 0}
+  label.small{font-size:.85rem;color:var(--muted);display:block;margin-bottom:6px}
+  input[type="text"],input[type="date"],input[type="time"],select{
+    width:100%;background:#0f1620;border:1px solid rgba(255,255,255,.12);color:var(--text);padding:10px 12px;border-radius:10px
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; background:linear-gradient(180deg,#0b0f14 0%,#0c121b 100%);
-    color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    display:grid; place-items:start center; padding:28px;
-  }
-  .wrap{width:min(1200px,100%); display:grid; gap:22px; grid-template-columns: 1.1fr .9fr}
-  @media (max-width:1000px){ .wrap{grid-template-columns:1fr} }
-  .card{
-    background:var(--panel); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px;
-    border:1px solid rgba(255,255,255,.06);
-  }
-  h1{margin:0 0 4px; font-weight:800; letter-spacing:.2px}
-  .sub{color:var(--muted); font-size:.95rem; margin-bottom:14px}
-  .row{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
-  .grid{display:grid; gap:14px}
-  .grid.days{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-  label.small{font-size:.85rem; color:var(--muted); display:block; margin-bottom:6px}
-
-  /* Pretty radio pills */
-  .pill-group{display:flex; gap:8px; flex-wrap:wrap}
-  .pill{
-    position:relative; display:inline-flex; align-items:center; gap:8px; padding:10px 14px;
-    border-radius:999px; border:1px solid rgba(255,255,255,.08); cursor:pointer;
-    background:#0f1620; color:#dfe7f2; user-select:none; transition:transform .05s ease, border-color .15s;
-  }
-  .pill:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.16)}
-  .pill input{appearance:none; position:absolute; inset:0; cursor:pointer}
-  .pill[data-checked="true"]{
-    border-color:rgba(255,255,255,.25); box-shadow: inset 0 0 0 2px rgba(255,255,255,.08), 0 6px 18px rgba(0,0,0,.25);
-  }
-  .pill .dot{width:10px;height:10px;border-radius:50%;background:#5f728a;box-shadow:0 0 0 2px rgba(0,0,0,.3) inset}
-  .pill[data-checked="true"] .dot{background:var(--accent)}
-
-  .day-card{padding:14px;border-radius:14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05)}
-  .day-head{font-weight:700;margin-bottom:8px}
-  .controls{display:grid;gap:8px}
-  .controls .pill-group{margin-top:4px}
-
-  .aside{display:grid; gap:14px}
-  .canvas-wrap{display:grid; place-items:center; padding:10px; background:linear-gradient(180deg, #0b0f14 0%, #0f1722 100%); border-radius:var(--radius)}
-  canvas{width:360px; height:640px; border-radius:20px; display:block}
-  .actions{display:flex; gap:10px; align-items:center; justify-content:space-between}
-  .btn{
-    appearance:none; border:none; border-radius:12px; padding:12px 16px; font-weight:700; cursor:pointer;
-    color:#071016; background:linear-gradient(180deg,#46e2a1,#2bc18b); box-shadow:0 8px 20px rgba(39,180,126,.35);
-  }
-  .btn:active{transform:translateY(1px)}
-  .ghost{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.16)}
-  .hint{color:var(--muted); font-size:.85rem}
-  .hr{height:1px;background:rgba(255,255,255,.06);margin:8px 0}
+  .days{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+  .day-card{padding:12px;border-radius:14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05)}
+  .day-head{font-weight:800;margin-bottom:8px}
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+  .chip{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#0f1620;border:1px solid rgba(255,255,255,.12);font-size:.85rem}
+  .chip small{color:#93a8bf}
+  .chip button{all:unset;cursor:pointer;padding:0 6px;color:#b7c7db}
+  .chip button:hover{color:#fff}
+  .add-grid{display:grid;gap:8px}
+  .add-grid .cols-4{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr;gap:8px}
+  .btn{appearance:none;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+  .btn.primary{color:#071016;background:linear-gradient(180deg,#46e2a1,#2bc18b);box-shadow:0 8px 20px rgba(39,180,126,.35)}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
+  .canvas-card{position:relative}
+  .canvas-toolbar{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:2}
+  .canvas-wrap{position:relative;display:grid;place-items:center;padding:10px;background:linear-gradient(180deg,#0b0f14,#0f1722);border-radius:var(--radius)}
+  canvas{width:360px;height:640px;border-radius:20px;display:block}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <!-- LEFT: Form -->
-    <section class="card">
-      <h1>Streamingplan erstellen</h1>
-      <div class="sub">Schnell die Woche planen und als Instagram-Story exportieren (1080×1920).</div>
+<div class="wrap">
+  <!-- Eingabe -->
+  <section class="card">
+    <h1>Streamingplan erstellen</h1>
+    <div class="sub">Mehrere Bubbles pro Tag inkl. Startzeit & Freitext · 1080×1920 Export. (Leere Wochentage werden entfernt.)</div>
 
-      <div class="grid" style="grid-template-columns:1fr 1fr">
-        <div>
-          <label class="small">Wochenstart (Montag)</label>
-          <input id="weekStart" type="date" style="width:100%;background:#0f1620;border:1px solid rgba(255,255,255,.12);color:var(--text);padding:10px 12px;border-radius:10px">
-        </div>
-        <div>
-          <label class="small">Titel</label>
-          <input id="title" type="text" value="Streamplan" style="width:100%;background:#0f1620;border:1px solid rgba(255,255,255,.12);color:var(--text);padding:10px 12px;border-radius:10px">
-        </div>
+    <div class="grid cols-2">
+      <div>
+        <label class="small">Titel</label>
+        <input id="title" type="text" value="Streamplan">
       </div>
-
-      <div class="hr"></div>
-
-      <div class="grid days" id="daysForm"></div>
-
-      <div class="hr"></div>
-
-      <div class="actions">
-        <div class="hint">Tipp: Spiele kannst du im Code unten leicht erweitern (siehe <code>GAME_THEMES</code>).</div>
-        <div class="row">
-          <button class="btn ghost" id="resetBtn" type="button">Zurücksetzen</button>
-          <button class="btn" id="downloadBtn" type="button">Als PNG herunterladen</button>
-        </div>
+      <div>
+        <label class="small">Wochenstart (Montag)</label>
+        <input id="weekStart" type="date">
       </div>
-    </section>
+    </div>
 
-    <!-- RIGHT: Live Preview -->
-    <aside class="aside">
-      <div class="card">
-        <div class="row" style="justify-content:space-between">
-          <div>
-            <div style="font-weight:800; font-size:1.1rem; margin-bottom:4px">Live-Preview</div>
-            <div class="sub">Skalierte Vorschau der Instagram-Story</div>
-          </div>
-          <div class="hint">1080 × 1920 px</div>
-        </div>
-        <div class="canvas-wrap">
-          <canvas id="storyPreview" width="1080" height="1920"></canvas>
-        </div>
+    <div class="hr"></div>
+
+    <div class="days" id="daysForm"></div>
+  </section>
+
+  <!-- Preview / Export -->
+  <aside class="card canvas-card">
+    <div style="display:flex;justify-content:space-between;align-items:end;margin-bottom:4px">
+      <div>
+        <div style="font-weight:800;font-size:1.05rem;margin-bottom:2px">Live-Preview</div>
+        <div class="sub">Skalierte Vorschau der Instagram-Story</div>
       </div>
-    </aside>
-  </div>
+    </div>
+    <div class="canvas-toolbar">
+      <button class="btn ghost" id="resetBtn" type="button">Zurücksetzen</button>
+      <button class="btn primary" id="downloadBtn" type="button">PNG exportieren</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="story" width="1080" height="1920"></canvas>
+    </div>
+  </aside>
+</div>
 
 <script>
-/** ========= Konfiguration ========= **/
+/* ================= Base Path ================= */
+const PATH = "https://www.steinhq.de/StreamplanCreator/"; // anpassen falls nötig
+
+/* ================= Konfiguration ================= */
 const DAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 
-/* Spiele + Styles – hier modular erweiterbar */
 const GAME_THEMES = {
-  "CS": {
-    label: "CS",
-    gradient: ["#ffb36b","#d86d18"],    // warm orange
-    watermark: "CS",
-  },
-  "Battlefield 6": {
-    label: "Battlefield 6",
-    gradient: ["#79c6ff","#1972ea"],    // blau
-    watermark: "BF6",
-  },
-  "Steinfrei": {
-    label: "Steinfrei",
-    gradient: ["#9be58a","#2ac769"],    // grün
-    watermark: "SF",
-  },
-  // Beispiel zum Erweitern:
-  // "Valorant": { label:"Valorant", gradient:["#ff8bb5","#ff3366"], watermark:"VAL" },
+  "CS":            { label:"CS",            gradient:["#ffb36b","#d86d18"], watermark:"CS",  bg: PATH+"img/games/cs.png" },
+  "Battlefield 6": { label:"Battlefield 6", gradient:["#79c6ff","#1972ea"], watermark:"BF6", bg: PATH+"img/games/bf6.png" },
+  "Steinfrei":     { label:"Steinfrei",     gradient:["#9be58a","#2ac769"], watermark:"SF",  bg: PATH+"img/games/steinfrei.png" },
 };
 
 const LANG = {
-  none: { label: "Keine", badge: null },
-  de:   { label: "Deutsch", badge: "DE" },
-  en:   { label: "American English", badge: "EN" },
+  de:   { label:"Deutsch",          icon: PATH+"img/languages/german.png" },
+  en:   { label:"American English", icon: PATH+"img/languages/american_english.png" },
+  none: { label:"Keine",            icon: null }
 };
 
-/** ========= State ========= **/
+/* Emote (wird auch ins Canvas gerendert) */
+const EMOTE_NAMES = ["baustellentorpedo","broiler2","dollar","dollars","goldbar","huhn","klingeling","lol","love","nice","Steincrazy","tilt"];
+const EMOTE_SRC = () => PATH + "img/emotes/" + EMOTE_NAMES[Math.floor(Math.random()*EMOTE_NAMES.length)] + ".png";
+
+/* ================= State & Layout ================= */
 const state = {
-  title: "Streamplan",
-  weekStart: mondayOf(new Date()),
-  days: DAYS.map(() => ({ game: "CS", lang: "de" })),
+  title:"Streamplan",
+  weekStart:mondayOf(new Date()),
+  days: DAYS.map(()=>[]) // [{game,lang,time,note}]
+};
+const LAYOUT = {
+  left: 72,
+  headerTitleY: 52,
+  titleSize: 84,
+  dateSize: 44,
+  afterDateGap: 96,
+  dayTopMargin: 28,
+  dayLabelSize: 50,
+  bubbleW: 1080 - 72*2,
+  bubbleH: 128,
+  bubbleSpacing: 42,
+  dayGap: 56
 };
 
-function mondayOf(d){
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const day = x.getDay(); // 0=So
-  const diff = (day === 0 ? -6 : 1 - day);
-  x.setDate(x.getDate() + diff);
-  return x;
-}
-
-/** ========= UI Aufbau ========= **/
-const daysForm = document.getElementById("daysForm");
-const titleInput = document.getElementById("title");
-const weekStartInput = document.getElementById("weekStart");
-const downloadBtn = document.getElementById("downloadBtn");
-const resetBtn = document.getElementById("resetBtn");
-const previewCanvas = document.getElementById("storyPreview");
-const ctx = previewCanvas.getContext("2d");
-
-function pad(n){ return String(n).padStart(2,"0"); }
-function isoDate(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-
+/* ================= Helpers ================= */
+function mondayOf(d){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=x.getDay(); x.setDate(x.getDate()+(day===0?-6:1-day)); return x; }
+function pad2(n){return String(n).padStart(2,"0")}
+function isoDate(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
 function formatRange(start){
-  const end = new Date(start); end.setDate(end.getDate()+6);
-  const optsDay = { day: "2-digit" };
-  const optsMonth = { month: "short" };
-  const optsFull = { day:"2-digit", month:"short", year:"numeric" };
-  const sameMonth = start.getMonth()===end.getMonth() && start.getFullYear()===end.getFullYear();
-  const intl = new Intl.DateTimeFormat("de-DE", optsFull);
-  const intlDay = new Intl.DateTimeFormat("de-DE", optsDay);
-  const intlMonth = new Intl.DateTimeFormat("de-DE", optsMonth);
-
-  if(sameMonth){
-    return `${intlDay.format(start)}.–${intl.format(end)}`;
-  }else{
-    const left = `${intlDay.format(start)}. ${intlMonth.format(start)} ${start.getFullYear()}`;
-    return `${left} – ${intl.format(end)}`;
-  }
+  const end=new Date(start); end.setDate(end.getDate()+6);
+  const intl=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"short",year:"numeric"});
+  const d1=new Intl.DateTimeFormat("de-DE",{day:"2-digit"}).format(start);
+  const m1=new Intl.DateTimeFormat("de-DE",{month:"short"}).format(start);
+  const y1=start.getFullYear();
+  return (start.getMonth()===end.getMonth() && start.getFullYear()===end.getFullYear())
+    ? `${d1}.–${intl.format(end)}` : `${d1}. ${m1} ${y1} – ${intl.format(end)}`;
 }
 
-/* Radiopill-Komponente */
-function pill(name, value, text, checked, onChange){
-  const id = `${name}-${Math.random().toString(36).slice(2)}`;
-  const el = document.createElement("label");
-  el.className = "pill";
-  el.dataset.checked = checked ? "true" : "false";
-  el.innerHTML = `<span class="dot"></span><span>${text}</span><input type="radio" name="${name}">`;
-  const input = el.querySelector("input");
-  input.value = value;
-  input.checked = !!checked;
-  input.addEventListener("change", () => { el.dataset.checked = "true"; onChange(value, el); });
-  el.addEventListener("click", () => { input.checked = true; input.dispatchEvent(new Event("change",{bubbles:true})); });
-  return el;
+/* ================= Bild-Cache & Loader ================= */
+const IMG = {}; // key -> HTMLImageElement
+
+// Wichtig: KEIN crossOrigin -> gleiches Origin, Export bleibt möglich.
+function loadURL(url, key, cb){
+  const im = new Image();
+  im.onload = ()=>{ IMG[key]=im; cb && cb(); };
+  im.onerror = ()=>{ console.warn("Bild konnte nicht geladen werden:", url); cb && cb(); };
+  im.src = url;
 }
 
-function renderForm(){
-  // Kopf-Felder
-  titleInput.value = state.title;
-  weekStartInput.value = isoDate(state.weekStart);
+/* ================= UI ================= */
+const daysForm=document.getElementById("daysForm");
+const titleInput=document.getElementById("title");
+const weekStartInput=document.getElementById("weekStart");
+const downloadBtn=document.getElementById("downloadBtn");
+const resetBtn=document.getElementById("resetBtn");
+const canvas=document.getElementById("story");
+const ctx=canvas.getContext("2d");
 
-  // Tage
-  daysForm.innerHTML = "";
-  DAYS.forEach((day, idx) => {
-    const wrap = document.createElement("div");
-    wrap.className = "day-card";
+function renderDays(){
+  daysForm.innerHTML="";
+  DAYS.forEach((d,di)=>{
+    const card=document.createElement("div"); card.className="day-card";
+    const head=document.createElement("div"); head.className="day-head"; head.textContent=d;
+    card.appendChild(head);
 
-    // Game radios
-    const gameRow = document.createElement("div");
-    const gameLabel = document.createElement("label");
-    gameLabel.className = "small";
-    gameLabel.textContent = "Spiel";
-    const gameGroup = document.createElement("div");
-    gameGroup.className = "pill-group";
-    Object.keys(GAME_THEMES).forEach(g => {
-      gameGroup.appendChild(
-        pill(`game-${idx}`, g, GAME_THEMES[g].label, state.days[idx].game===g, (val, el) => {
-          state.days[idx].game = val;
-          // uncheck visuals of siblings
-          [...gameGroup.children].forEach(c => c.dataset.checked = (c===el) ? "true" : "false");
-          draw();
-        })
-      );
+    const chips=document.createElement("div"); chips.className="chip-row";
+    function refreshChips(){
+      chips.innerHTML="";
+      state.days[di]
+        .slice()
+        .sort((a,b)=>(a.time||"").localeCompare(b.time||""))
+        .forEach((b,bi)=>{
+          const el=document.createElement("div"); el.className="chip";
+          const label=(GAME_THEMES[b.game]?.label||b.game)+(b.note?` – ${b.note}`:"");
+          el.innerHTML=`<strong>${b.time||"—"}</strong><span>${label}</span><small>${LANG[b.lang]?.label||"–"}</small><button title="Entfernen">✕</button>`;
+          el.querySelector("button").onclick=()=>{ state.days[di].splice(bi,1); refreshChips(); draw(); };
+          chips.appendChild(el);
+        });
+    }
+    refreshChips();
+    card.appendChild(chips);
+
+    const grid=document.createElement("div"); grid.className="add-grid";
+    const row=document.createElement("div"); row.className="cols-4";
+
+    const gameSel=document.createElement("select");
+    Object.keys(GAME_THEMES).forEach(k=>{
+      const o=document.createElement("option"); o.value=k; o.textContent=GAME_THEMES[k].label; gameSel.appendChild(o);
     });
-
-    // Lang radios
-    const langRow = document.createElement("div");
-    const langLabel = document.createElement("label");
-    langLabel.className = "small";
-    langLabel.textContent = "Sprache";
-    const langGroup = document.createElement("div");
-    langGroup.className = "pill-group";
-    [["de","Deutsch"],["en","American English"],["none","Keine"]].forEach(([k,txt]) => {
-      langGroup.appendChild(
-        pill(`lang-${idx}`, k, txt, state.days[idx].lang===k, (val, el) => {
-          state.days[idx].lang = val;
-          [...langGroup.children].forEach(c => c.dataset.checked = (c===el) ? "true" : "false");
-          draw();
-        })
-      );
+    const langSel=document.createElement("select");
+    [["de","Deutsch"],["en","American English"],["none","Keine"]].forEach(([k,txt])=>{
+      const o=document.createElement("option"); o.value=k; o.textContent=txt; langSel.appendChild(o);
     });
+    const timeIn=document.createElement("input"); timeIn.type="time"; timeIn.value="20:00";
+    const noteIn=document.createElement("input"); noteIn.type="text"; noteIn.placeholder="Freitext (optional)";
 
-    const head = document.createElement("div");
-    head.className="day-head";
-    head.textContent = day;
+    row.append(gameSel,langSel,timeIn,noteIn);
+    const addBtn=document.createElement("button"); addBtn.className="btn primary"; addBtn.textContent="+ Bubble hinzufügen";
+    addBtn.onclick=()=>{
+      state.days[di].push({game:gameSel.value,lang:langSel.value,time:timeIn.value,note:noteIn.value.trim()});
+      noteIn.value=""; refreshChips(); draw();
+    };
 
-    wrap.appendChild(head);
-    gameRow.appendChild(gameLabel); gameRow.appendChild(gameGroup);
-    langRow.appendChild(langLabel); langRow.appendChild(langGroup);
-    const controls = document.createElement("div"); controls.className="controls";
-    controls.appendChild(gameRow); controls.appendChild(langRow);
-    wrap.appendChild(controls);
-
-    daysForm.appendChild(wrap);
+    grid.append(row,addBtn);
+    card.appendChild(grid);
+    daysForm.appendChild(card);
   });
 }
 
-/** ========= Zeichnen auf Canvas (1080×1920) ========= **/
+/* ================= Canvas Helpers ================= */
 function rr(x,y,w,h,r){
-  const k = Math.min(r, h/2, w/2);
+  const k=Math.min(r,w/2,h/2);
   ctx.beginPath();
   ctx.moveTo(x+k,y);
   ctx.arcTo(x+w,y,x+w,y+h,k);
@@ -283,131 +220,182 @@ function rr(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,k);
   ctx.closePath();
 }
-function fillGradient(x,y,w,h,c1,c2){
-  const g = ctx.createLinearGradient(x,y,x,y+h);
-  g.addColorStop(0,c1); g.addColorStop(1,c2);
-  ctx.fillStyle = g; ctx.fill();
+function fillGrad(x,y,w,h,c1,c2){
+  const g=ctx.createLinearGradient(x,y,x,y+h);
+  g.addColorStop(0,c1); g.addColorStop(1,c2); ctx.fillStyle=g; ctx.fill();
 }
-function draw(){
-  const W = previewCanvas.width, H = previewCanvas.height;
-  // Hintergrund
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,"#0b0f14"); bg.addColorStop(1,"#0f1722");
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+function drawImageCover(img,x,y,w,h,alpha=1){
+  const ratio=Math.max(w/img.width, h/img.height);
+  const dw=img.width*ratio, dh=img.height*ratio;
+  const dx=x+(w-dw)/2, dy=y+(h-dh)/2;
+  ctx.globalAlpha=alpha; ctx.drawImage(img,dx,dy,dw,dh); ctx.globalAlpha=1;
+}
+function darkenHex(hex, f=0.85){
+  const c=hex.replace('#',''); const r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+  const rd=Math.max(0,Math.round(r*f)), gd=Math.max(0,Math.round(g*f)), bd=Math.max(0,Math.round(b*f));
+  return `rgb(${rd},${gd},${bd})`;
+}
 
-  // Rahmung
-  const marginX = 72, marginTop = 120, lineH = 228;
+/* ================= Bubble Rendering ================= */
+function drawBubble(x,y,w,h,theme,langKey,time,label,note){
+  // Outline + Shadow
   ctx.save();
-  // Titel
-  ctx.fillStyle = "#eaf2ff";
-  ctx.font = "800 76px Inter, sans-serif";
-  ctx.textAlign = "left"; ctx.textBaseline = "top";
-  ctx.fillText(state.title || "Streamplan", marginX, marginTop - 72);
-
-  // Datumsbereich
-  ctx.font = "600 40px Inter, sans-serif";
-  ctx.fillStyle = "rgba(190,210,230,.9)";
-  const dateStr = formatRange(state.weekStart);
-  ctx.fillText(dateStr, marginX, marginTop - 10);
-
-  // Tage
-  const pillH = 110;
-  const pillR = 28;
-  const pillX = marginX;
-  const pillW = W - marginX*2;
-
-  DAYS.forEach((day, i) => {
-    const y = marginTop + i*lineH + 30;
-
-    // Tag
-    ctx.fillStyle = "#caddf0cc";
-    ctx.font = "700 44px Inter, sans-serif";
-    ctx.fillText(day, pillX, y - 56);
-
-    // Game-Pill
-    const gameKey = state.days[i].game;
-    const theme = GAME_THEMES[gameKey] || GAME_THEMES["CS"];
-    rr(pillX, y, pillW, pillH, pillR);
-    fillGradient(pillX,y,pillW,pillH,theme.gradient[0], theme.gradient[1]);
-
-    // Wasserzeichen (groß, soft)
-    ctx.save();
-    ctx.clip();
-    ctx.globalAlpha = .16;
-    ctx.fillStyle = "#0b0f14";
-    ctx.font = "800 180px Inter, sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(theme.watermark, pillX + pillW*0.68, y + pillH/2);
-    ctx.restore();
-
-    // Spiel-Text
-    ctx.fillStyle = "#061016";
-    ctx.globalAlpha = .22;
-    rr(pillX+10,y+10,pillW-20,pillH-20,pillR-12); ctx.fill();
-    ctx.globalAlpha = 1;
-
-    ctx.fillStyle = "#f7fbff";
-    ctx.font = "800 50px Inter, sans-serif";
-    ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    ctx.fillText(theme.label, pillX + 28, y + pillH/2);
-
-    // Sprache-Badge (optional)
-    const langKey = state.days[i].lang;
-    const badge = LANG[langKey]?.badge;
-    if (badge){
-      const bx = pillX + pillW - 210, by = y - 24, bw = 190, bh = 64, br = 22;
-      rr(bx,by,bw,bh,br);
-      const lg = ctx.createLinearGradient(bx,by,bx,by+bh);
-      lg.addColorStop(0,"#ffffff"); lg.addColorStop(1,"#dfe9f3");
-      ctx.fillStyle = lg; ctx.fill();
-
-      ctx.font = "800 34px Inter, sans-serif";
-      ctx.fillStyle = "#0c1420";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(badge, bx + bw/2, by + bh/2);
-    }
-  });
-
-  // Footer Branding (dezent)
-  ctx.fillStyle = "rgba(200,220,240,.28)";
-  ctx.font = "600 30px Inter, sans-serif";
-  ctx.textAlign = "right"; ctx.textBaseline = "alphabetic";
-  ctx.fillText("@SteinHQ · twitch.tv/SteinHQ", W - marginX, H - 48);
-
+  ctx.shadowColor="rgba(0,0,0,.35)"; ctx.shadowBlur=16; ctx.lineWidth=10; ctx.strokeStyle=darkenHex(theme.gradient[0],0.85);
+  rr(x,y,w,h,28); ctx.stroke();
   ctx.restore();
+
+  ctx.save(); rr(x,y,w,h,28); ctx.clip();
+
+  // Gradient-Untergrund
+  fillGrad(x,y,w,h, theme.gradient[0], theme.gradient[1]);
+
+  // Bild drüber
+  const gameImg = IMG[`game:${theme.label}`];
+  if(gameImg) drawImageCover(gameImg, x, y, w, h, 0.95);
+
+  // Vignette rechts
+  const vg = ctx.createLinearGradient(x, y, x+w, y);
+  vg.addColorStop(0.55, "rgba(0,0,0,0)");
+  vg.addColorStop(1.0, "rgba(0,0,0,0.40)");
+  ctx.fillStyle = vg; ctx.fillRect(x,y,w,h);
+
+  // Watermark
+  ctx.globalAlpha=.16; ctx.fillStyle="#0b0f14"; ctx.font="800 140px Inter, sans-serif";
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText(theme.watermark, x + w*0.72, y + h/2);
+  ctx.globalAlpha=1;
+
+  // Inner panel
+  ctx.fillStyle="rgba(6,16,22,.22)"; rr(x+10,y+10,w-20,h-20,22); ctx.fill();
+  ctx.restore();
+
+  // Zeit-Badge
+  const tbx=x+22, tby=y-32, tbw=170, tbh=70;
+  rr(tbx,tby,tbw,tbh,22); ctx.fillStyle="rgba(255,255,255,.95)"; ctx.fill();
+  ctx.fillStyle="#0c1420"; ctx.font="800 36px Inter, sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText(time||"—", tbx+tbw/2, tby+tbh/2);
+
+  // Flaggen-Badge
+  if(langKey && LANG[langKey] && langKey!=="none"){
+    const bx=x+w-200, by=y-32, bw=190, bh=70;
+    rr(bx,by,bw,bh,22); ctx.fillStyle="#ffffff"; ctx.fill();
+    const pad=12, fw=88, fh=bh-pad*2, fx=bx+pad, fy=by+pad;
+    const flag=IMG[`lang:${langKey}`];
+    if(flag) drawImageCover(flag,fx,fy,fw,fh);
+    ctx.fillStyle="#0c1420"; ctx.font="800 30px Inter, sans-serif"; ctx.textAlign="left"; ctx.textBaseline="middle";
+    ctx.fillText(langKey.toUpperCase(), fx+fw+12, by+bh/2);
+  }
+
+  // Label (+ Freitext)
+  const fullLabel = label + (note ? ` – ${note}` : "");
+  ctx.fillStyle="#f7fbff"; 
+  ctx.font="800 52px Inter, sans-serif"; 
+  ctx.textAlign="left"; ctx.textBaseline="middle";
+  const textY = y + h/2 + 12;
+  const maxW = w - 300; 
+  let t = fullLabel; 
+  while(ctx.measureText(t).width>maxW && t.length>3){ t=t.slice(0,-2)+"…"; }
+  ctx.fillText(t, x+28, textY);
 }
 
-/** ========= Events ========= **/
-titleInput.addEventListener("input", e => { state.title = e.target.value; draw(); });
-weekStartInput.addEventListener("change", e => {
-  const d = new Date(e.target.value);
-  state.weekStart = mondayOf(d);
-  // normalize input to real Montag
-  weekStartInput.value = isoDate(state.weekStart);
-  draw();
-});
-downloadBtn.addEventListener("click", () => {
-  // Direkt aus dem Canvas exportieren (keine externen Libs nötig)
-  const link = document.createElement("a");
-  link.download = `${(state.title||"Streamplan").replace(/\s+/g,'_')}_${isoDate(state.weekStart)}.png`;
-  link.href = previewCanvas.toDataURL("image/png");
-  link.click();
-});
-resetBtn.addEventListener("click", () => {
-  state.title = "Streamplan";
-  state.weekStart = mondayOf(new Date());
-  state.days = DAYS.map(() => ({ game:"CS", lang:"de" }));
-  renderForm();
-  draw();
-});
+/* ================= Zeichnen ================= */
+function draw(){
+  const W=canvas.width,H=canvas.height;
 
-/** ========= Init ========= **/
-(function init(){
-  renderForm();
-  draw();
-  // Standard: heutigen Montag setzen
-  weekStartInput.value = isoDate(state.weekStart);
-})();
+  // Hintergrund
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,"#0b0f14"); bg.addColorStop(1,"#0f1722");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  // Header
+  ctx.fillStyle="#eaf2ff"; ctx.font=`800 ${LAYOUT.titleSize}px Inter, sans-serif`; 
+  ctx.textAlign="left"; ctx.textBaseline="top";
+  ctx.fillText(state.title||"Streamplan", LAYOUT.left, LAYOUT.headerTitleY);
+
+  // Datum
+  ctx.font=`600 ${LAYOUT.dateSize}px Inter, sans-serif`; 
+  ctx.fillStyle="rgba(190,210,230,.92)";
+  const dateY = LAYOUT.headerTitleY + LAYOUT.titleSize + 10;
+  ctx.fillText(formatRange(state.weekStart), LAYOUT.left, dateY);
+
+  // Emote oben rechts: Höhe = vom Titel-Top bis zum Date-Bottom
+  const em = IMG["emote"];
+  if (em) {
+    const emSize = (dateY + LAYOUT.dateSize) - LAYOUT.headerTitleY; // ideal height
+    const emX = canvas.width - 72 - emSize;  // rechter Rand mit 72px Margin
+    const emY = LAYOUT.headerTitleY;         // bündig mit Titel-Top
+    drawImageCover(em, emX, emY, emSize, emSize, 1);
+  }
+
+  // Start Y
+  let y = dateY + LAYOUT.afterDateGap;
+
+  // nur Tage mit Einträgen
+  const nonEmpty = DAYS.map((name,idx)=>({name,idx,bubbles:state.days[idx]})).filter(d=>d.bubbles.length>0);
+
+  if(nonEmpty.length===0){
+    ctx.fillStyle="rgba(200,220,240,.5)"; ctx.font="600 36px Inter, sans-serif";
+    ctx.fillText("Keine Einträge – füge Bubbles hinzu.",LAYOUT.left, H/2);
+  }else{
+    for(const day of nonEmpty){
+      y += LAYOUT.dayTopMargin;
+      ctx.fillStyle="#caddf0cc"; 
+      ctx.font=`800 ${LAYOUT.dayLabelSize}px Inter, sans-serif`;
+      ctx.textAlign="left"; ctx.textBaseline="alphabetic";
+      ctx.fillText(day.name, LAYOUT.left, y);
+      y += 10;
+
+      day.bubbles.slice().sort((a,b)=>(a.time||"").localeCompare(b.time||"")).forEach(b=>{
+        const theme = GAME_THEMES[b.game] || GAME_THEMES["CS"];
+        drawBubble(LAYOUT.left, y + LAYOUT.bubbleSpacing, LAYOUT.bubbleW, LAYOUT.bubbleH,
+                   theme, b.lang, b.time, (GAME_THEMES[b.game]?.label||b.game), b.note);
+        y += LAYOUT.bubbleH + LAYOUT.bubbleSpacing;
+      });
+
+      y += LAYOUT.dayGap;
+    }
+  }
+
+  // Footer
+  ctx.fillStyle="rgba(200,220,240,.28)"; ctx.font="600 30px Inter, sans-serif";
+  ctx.textAlign="right"; ctx.textBaseline="alphabetic";
+  ctx.fillText("@SteinHQ · twitch.tv/SteinHQ", W-72, H-48);
+}
+
+/* ================= Events ================= */
+titleInput.oninput = e => { state.title=e.target.value; draw(); };
+weekStartInput.onchange = e => { state.weekStart=mondayOf(new Date(e.target.value)); weekStartInput.value=isoDate(state.weekStart); draw(); };
+downloadBtn.onclick = ()=>{
+  const a=document.createElement("a");
+  a.download=`${(state.title||"Streamplan").replace(/\s+/g,'_')}_${isoDate(state.weekStart)}.png`;
+  a.href=canvas.toDataURL("image/png");
+  a.click();
+};
+resetBtn.onclick = ()=>{
+  state.title="Streamplan"; state.weekStart=mondayOf(new Date()); state.days=DAYS.map(()=>[]);
+  titleInput.value=state.title; weekStartInput.value=isoDate(state.weekStart);
+  renderDays(); draw();
+};
+
+/* ================= Init ================= */
+function preloadAssets(){
+  // Games
+  Object.entries(GAME_THEMES).forEach(([_,v])=>{
+    if(v.bg) loadURL(v.bg, `game:${v.label}`, draw);
+  });
+  // Languages
+  Object.entries(LANG).forEach(([k,v])=>{
+    if(v.icon) loadURL(v.icon, `lang:${k}`, draw);
+  });
+  // Emote (für Export im Canvas)
+  loadURL(EMOTE_SRC(), "emote", draw);
+}
+function renderUI(){
+  renderDays();
+  titleInput.value=state.title;
+  weekStartInput.value=isoDate(state.weekStart);
+}
+(function init(){ renderUI(); preloadAssets(); draw(); })();
 </script>
 </body>
 </html>
