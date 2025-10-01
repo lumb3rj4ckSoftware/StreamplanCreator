@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Streamplan · SteinHQ</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f14;           /* FitStory-ähnlicher Dark-Background */
+    --panel:#121922;        /* Karten-Hintergrund */
+    --muted:#9fb0c5aa;
+    --text:#eef3f8;
+    --accent:#46e2a1;
+    --radius:18px;
+    --shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:linear-gradient(180deg,#0b0f14 0%,#0c121b 100%);
+    color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    display:grid; place-items:start center; padding:28px;
+  }
+  .wrap{width:min(1200px,100%); display:grid; gap:22px; grid-template-columns: 1.1fr .9fr}
+  @media (max-width:1000px){ .wrap{grid-template-columns:1fr} }
+  .card{
+    background:var(--panel); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px;
+    border:1px solid rgba(255,255,255,.06);
+  }
+  h1{margin:0 0 4px; font-weight:800; letter-spacing:.2px}
+  .sub{color:var(--muted); font-size:.95rem; margin-bottom:14px}
+  .row{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
+  .grid{display:grid; gap:14px}
+  .grid.days{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  label.small{font-size:.85rem; color:var(--muted); display:block; margin-bottom:6px}
+
+  /* Pretty radio pills */
+  .pill-group{display:flex; gap:8px; flex-wrap:wrap}
+  .pill{
+    position:relative; display:inline-flex; align-items:center; gap:8px; padding:10px 14px;
+    border-radius:999px; border:1px solid rgba(255,255,255,.08); cursor:pointer;
+    background:#0f1620; color:#dfe7f2; user-select:none; transition:transform .05s ease, border-color .15s;
+  }
+  .pill:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.16)}
+  .pill input{appearance:none; position:absolute; inset:0; cursor:pointer}
+  .pill[data-checked="true"]{
+    border-color:rgba(255,255,255,.25); box-shadow: inset 0 0 0 2px rgba(255,255,255,.08), 0 6px 18px rgba(0,0,0,.25);
+  }
+  .pill .dot{width:10px;height:10px;border-radius:50%;background:#5f728a;box-shadow:0 0 0 2px rgba(0,0,0,.3) inset}
+  .pill[data-checked="true"] .dot{background:var(--accent)}
+
+  .day-card{padding:14px;border-radius:14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05)}
+  .day-head{font-weight:700;margin-bottom:8px}
+  .controls{display:grid;gap:8px}
+  .controls .pill-group{margin-top:4px}
+
+  .aside{display:grid; gap:14px}
+  .canvas-wrap{display:grid; place-items:center; padding:10px; background:linear-gradient(180deg, #0b0f14 0%, #0f1722 100%); border-radius:var(--radius)}
+  canvas{width:360px; height:640px; border-radius:20px; display:block}
+  .actions{display:flex; gap:10px; align-items:center; justify-content:space-between}
+  .btn{
+    appearance:none; border:none; border-radius:12px; padding:12px 16px; font-weight:700; cursor:pointer;
+    color:#071016; background:linear-gradient(180deg,#46e2a1,#2bc18b); box-shadow:0 8px 20px rgba(39,180,126,.35);
+  }
+  .btn:active{transform:translateY(1px)}
+  .ghost{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.16)}
+  .hint{color:var(--muted); font-size:.85rem}
+  .hr{height:1px;background:rgba(255,255,255,.06);margin:8px 0}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- LEFT: Form -->
+    <section class="card">
+      <h1>Streamingplan erstellen</h1>
+      <div class="sub">Schnell die Woche planen und als Instagram-Story exportieren (1080×1920).</div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div>
+          <label class="small">Wochenstart (Montag)</label>
+          <input id="weekStart" type="date" style="width:100%;background:#0f1620;border:1px solid rgba(255,255,255,.12);color:var(--text);padding:10px 12px;border-radius:10px">
+        </div>
+        <div>
+          <label class="small">Titel</label>
+          <input id="title" type="text" value="Streamplan" style="width:100%;background:#0f1620;border:1px solid rgba(255,255,255,.12);color:var(--text);padding:10px 12px;border-radius:10px">
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="grid days" id="daysForm"></div>
+
+      <div class="hr"></div>
+
+      <div class="actions">
+        <div class="hint">Tipp: Spiele kannst du im Code unten leicht erweitern (siehe <code>GAME_THEMES</code>).</div>
+        <div class="row">
+          <button class="btn ghost" id="resetBtn" type="button">Zurücksetzen</button>
+          <button class="btn" id="downloadBtn" type="button">Als PNG herunterladen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Live Preview -->
+    <aside class="aside">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; margin-bottom:4px">Live-Preview</div>
+            <div class="sub">Skalierte Vorschau der Instagram-Story</div>
+          </div>
+          <div class="hint">1080 × 1920 px</div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="storyPreview" width="1080" height="1920"></canvas>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+<script>
+/** ========= Konfiguration ========= **/
+const DAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+
+/* Spiele + Styles – hier modular erweiterbar */
+const GAME_THEMES = {
+  "CS": {
+    label: "CS",
+    gradient: ["#ffb36b","#d86d18"],    // warm orange
+    watermark: "CS",
+  },
+  "Battlefield 6": {
+    label: "Battlefield 6",
+    gradient: ["#79c6ff","#1972ea"],    // blau
+    watermark: "BF6",
+  },
+  "Steinfrei": {
+    label: "Steinfrei",
+    gradient: ["#9be58a","#2ac769"],    // grün
+    watermark: "SF",
+  },
+  // Beispiel zum Erweitern:
+  // "Valorant": { label:"Valorant", gradient:["#ff8bb5","#ff3366"], watermark:"VAL" },
+};
+
+const LANG = {
+  none: { label: "Keine", badge: null },
+  de:   { label: "Deutsch", badge: "DE" },
+  en:   { label: "American English", badge: "EN" },
+};
+
+/** ========= State ========= **/
+const state = {
+  title: "Streamplan",
+  weekStart: mondayOf(new Date()),
+  days: DAYS.map(() => ({ game: "CS", lang: "de" })),
+};
+
+function mondayOf(d){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = x.getDay(); // 0=So
+  const diff = (day === 0 ? -6 : 1 - day);
+  x.setDate(x.getDate() + diff);
+  return x;
+}
+
+/** ========= UI Aufbau ========= **/
+const daysForm = document.getElementById("daysForm");
+const titleInput = document.getElementById("title");
+const weekStartInput = document.getElementById("weekStart");
+const downloadBtn = document.getElementById("downloadBtn");
+const resetBtn = document.getElementById("resetBtn");
+const previewCanvas = document.getElementById("storyPreview");
+const ctx = previewCanvas.getContext("2d");
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function isoDate(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+
+function formatRange(start){
+  const end = new Date(start); end.setDate(end.getDate()+6);
+  const optsDay = { day: "2-digit" };
+  const optsMonth = { month: "short" };
+  const optsFull = { day:"2-digit", month:"short", year:"numeric" };
+  const sameMonth = start.getMonth()===end.getMonth() && start.getFullYear()===end.getFullYear();
+  const intl = new Intl.DateTimeFormat("de-DE", optsFull);
+  const intlDay = new Intl.DateTimeFormat("de-DE", optsDay);
+  const intlMonth = new Intl.DateTimeFormat("de-DE", optsMonth);
+
+  if(sameMonth){
+    return `${intlDay.format(start)}.–${intl.format(end)}`;
+  }else{
+    const left = `${intlDay.format(start)}. ${intlMonth.format(start)} ${start.getFullYear()}`;
+    return `${left} – ${intl.format(end)}`;
+  }
+}
+
+/* Radiopill-Komponente */
+function pill(name, value, text, checked, onChange){
+  const id = `${name}-${Math.random().toString(36).slice(2)}`;
+  const el = document.createElement("label");
+  el.className = "pill";
+  el.dataset.checked = checked ? "true" : "false";
+  el.innerHTML = `<span class="dot"></span><span>${text}</span><input type="radio" name="${name}">`;
+  const input = el.querySelector("input");
+  input.value = value;
+  input.checked = !!checked;
+  input.addEventListener("change", () => { el.dataset.checked = "true"; onChange(value, el); });
+  el.addEventListener("click", () => { input.checked = true; input.dispatchEvent(new Event("change",{bubbles:true})); });
+  return el;
+}
+
+function renderForm(){
+  // Kopf-Felder
+  titleInput.value = state.title;
+  weekStartInput.value = isoDate(state.weekStart);
+
+  // Tage
+  daysForm.innerHTML = "";
+  DAYS.forEach((day, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className = "day-card";
+
+    // Game radios
+    const gameRow = document.createElement("div");
+    const gameLabel = document.createElement("label");
+    gameLabel.className = "small";
+    gameLabel.textContent = "Spiel";
+    const gameGroup = document.createElement("div");
+    gameGroup.className = "pill-group";
+    Object.keys(GAME_THEMES).forEach(g => {
+      gameGroup.appendChild(
+        pill(`game-${idx}`, g, GAME_THEMES[g].label, state.days[idx].game===g, (val, el) => {
+          state.days[idx].game = val;
+          // uncheck visuals of siblings
+          [...gameGroup.children].forEach(c => c.dataset.checked = (c===el) ? "true" : "false");
+          draw();
+        })
+      );
+    });
+
+    // Lang radios
+    const langRow = document.createElement("div");
+    const langLabel = document.createElement("label");
+    langLabel.className = "small";
+    langLabel.textContent = "Sprache";
+    const langGroup = document.createElement("div");
+    langGroup.className = "pill-group";
+    [["de","Deutsch"],["en","American English"],["none","Keine"]].forEach(([k,txt]) => {
+      langGroup.appendChild(
+        pill(`lang-${idx}`, k, txt, state.days[idx].lang===k, (val, el) => {
+          state.days[idx].lang = val;
+          [...langGroup.children].forEach(c => c.dataset.checked = (c===el) ? "true" : "false");
+          draw();
+        })
+      );
+    });
+
+    const head = document.createElement("div");
+    head.className="day-head";
+    head.textContent = day;
+
+    wrap.appendChild(head);
+    gameRow.appendChild(gameLabel); gameRow.appendChild(gameGroup);
+    langRow.appendChild(langLabel); langRow.appendChild(langGroup);
+    const controls = document.createElement("div"); controls.className="controls";
+    controls.appendChild(gameRow); controls.appendChild(langRow);
+    wrap.appendChild(controls);
+
+    daysForm.appendChild(wrap);
+  });
+}
+
+/** ========= Zeichnen auf Canvas (1080×1920) ========= **/
+function rr(x,y,w,h,r){
+  const k = Math.min(r, h/2, w/2);
+  ctx.beginPath();
+  ctx.moveTo(x+k,y);
+  ctx.arcTo(x+w,y,x+w,y+h,k);
+  ctx.arcTo(x+w,y+h,x,y+h,k);
+  ctx.arcTo(x,y+h,x,y,k);
+  ctx.arcTo(x,y,x+w,y,k);
+  ctx.closePath();
+}
+function fillGradient(x,y,w,h,c1,c2){
+  const g = ctx.createLinearGradient(x,y,x,y+h);
+  g.addColorStop(0,c1); g.addColorStop(1,c2);
+  ctx.fillStyle = g; ctx.fill();
+}
+function draw(){
+  const W = previewCanvas.width, H = previewCanvas.height;
+  // Hintergrund
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,"#0b0f14"); bg.addColorStop(1,"#0f1722");
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // Rahmung
+  const marginX = 72, marginTop = 120, lineH = 228;
+  ctx.save();
+  // Titel
+  ctx.fillStyle = "#eaf2ff";
+  ctx.font = "800 76px Inter, sans-serif";
+  ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillText(state.title || "Streamplan", marginX, marginTop - 72);
+
+  // Datumsbereich
+  ctx.font = "600 40px Inter, sans-serif";
+  ctx.fillStyle = "rgba(190,210,230,.9)";
+  const dateStr = formatRange(state.weekStart);
+  ctx.fillText(dateStr, marginX, marginTop - 10);
+
+  // Tage
+  const pillH = 110;
+  const pillR = 28;
+  const pillX = marginX;
+  const pillW = W - marginX*2;
+
+  DAYS.forEach((day, i) => {
+    const y = marginTop + i*lineH + 30;
+
+    // Tag
+    ctx.fillStyle = "#caddf0cc";
+    ctx.font = "700 44px Inter, sans-serif";
+    ctx.fillText(day, pillX, y - 56);
+
+    // Game-Pill
+    const gameKey = state.days[i].game;
+    const theme = GAME_THEMES[gameKey] || GAME_THEMES["CS"];
+    rr(pillX, y, pillW, pillH, pillR);
+    fillGradient(pillX,y,pillW,pillH,theme.gradient[0], theme.gradient[1]);
+
+    // Wasserzeichen (groß, soft)
+    ctx.save();
+    ctx.clip();
+    ctx.globalAlpha = .16;
+    ctx.fillStyle = "#0b0f14";
+    ctx.font = "800 180px Inter, sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(theme.watermark, pillX + pillW*0.68, y + pillH/2);
+    ctx.restore();
+
+    // Spiel-Text
+    ctx.fillStyle = "#061016";
+    ctx.globalAlpha = .22;
+    rr(pillX+10,y+10,pillW-20,pillH-20,pillR-12); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "#f7fbff";
+    ctx.font = "800 50px Inter, sans-serif";
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(theme.label, pillX + 28, y + pillH/2);
+
+    // Sprache-Badge (optional)
+    const langKey = state.days[i].lang;
+    const badge = LANG[langKey]?.badge;
+    if (badge){
+      const bx = pillX + pillW - 210, by = y - 24, bw = 190, bh = 64, br = 22;
+      rr(bx,by,bw,bh,br);
+      const lg = ctx.createLinearGradient(bx,by,bx,by+bh);
+      lg.addColorStop(0,"#ffffff"); lg.addColorStop(1,"#dfe9f3");
+      ctx.fillStyle = lg; ctx.fill();
+
+      ctx.font = "800 34px Inter, sans-serif";
+      ctx.fillStyle = "#0c1420";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(badge, bx + bw/2, by + bh/2);
+    }
+  });
+
+  // Footer Branding (dezent)
+  ctx.fillStyle = "rgba(200,220,240,.28)";
+  ctx.font = "600 30px Inter, sans-serif";
+  ctx.textAlign = "right"; ctx.textBaseline = "alphabetic";
+  ctx.fillText("@SteinHQ · twitch.tv/SteinHQ", W - marginX, H - 48);
+
+  ctx.restore();
+}
+
+/** ========= Events ========= **/
+titleInput.addEventListener("input", e => { state.title = e.target.value; draw(); });
+weekStartInput.addEventListener("change", e => {
+  const d = new Date(e.target.value);
+  state.weekStart = mondayOf(d);
+  // normalize input to real Montag
+  weekStartInput.value = isoDate(state.weekStart);
+  draw();
+});
+downloadBtn.addEventListener("click", () => {
+  // Direkt aus dem Canvas exportieren (keine externen Libs nötig)
+  const link = document.createElement("a");
+  link.download = `${(state.title||"Streamplan").replace(/\s+/g,'_')}_${isoDate(state.weekStart)}.png`;
+  link.href = previewCanvas.toDataURL("image/png");
+  link.click();
+});
+resetBtn.addEventListener("click", () => {
+  state.title = "Streamplan";
+  state.weekStart = mondayOf(new Date());
+  state.days = DAYS.map(() => ({ game:"CS", lang:"de" }));
+  renderForm();
+  draw();
+});
+
+/** ========= Init ========= **/
+(function init(){
+  renderForm();
+  draw();
+  // Standard: heutigen Montag setzen
+  weekStartInput.value = isoDate(state.weekStart);
+})();
+</script>
+</body>
+</html>
